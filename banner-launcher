@@ -100,7 +100,7 @@ print_usage() {
 #start
 main(){
     echo "[Banner Launcher] MohistMC Team"
-    if [ "-"${1} -eq "-" ]; then
+    if [ ${1:-true} ]; then
         print_usage
         exit 0
     fi
