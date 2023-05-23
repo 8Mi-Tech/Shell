@@ -85,7 +85,7 @@ banner_start(){
 }
 
 banner_launcher_update(){
-    wget -O"${1}" https://gist.github.com/8MiYile/388bca9fe4a59c9b2f889dd7760d3e8f/raw/97740e34de136753ecf80cec435368166ee03b2f/banner-launcher
+    wget -O"${1}" https://github.com/8Mi-Tech/Shell/raw/main/banner-launcher
     exit
 }
 
@@ -100,17 +100,26 @@ print_usage() {
 #start
 main(){
     echo "[Banner Launcher] MohistMC Team"
+    if [ "-"${1} -eq "-" ]; then
+        print_usage
+        exit 0
+    fi
     while true; do
         case "${1}" in
-            -h | --help | "" ) print_usage; exit 0 ;;
+            -h | --help ) print_usage; exit 0 ;;
+            -b | --build ) banner_build_boolean=true; shift ;;
+#           -i | --install ) banner_install_boolean=true; shift ;;
             -i | --install ) banner_install; shift ;;
             -j | --java-options ) banner_java_options="${2}"; shift 2 ;;
             -o | --options ) banner_options="${2}"; shift 2 ;;
             -s | --start ) banner_start ${2}; shift 2 ;;
             -u | --update-launcer) banner_launcher_update "${0}"; shift ;;
             -- ) shift; break ;;
-            * )  print_usage; exit 0 ;;
+            * ) break ;;
         esac
     done
+#   if [ ${banner_build_boolean:-false} -a ${banner_install_boolean:-false} ]; then
+#   else
+#   fi
 }
 main $*
