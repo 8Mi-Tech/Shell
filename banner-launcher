@@ -1,0 +1,116 @@
+#!/bin/bash
+ci_getLatest ()
+{
+    file_url_out=$(wget -q -O - $1/lastSuccessfulBuild/api/json | jq '.artifacts['$2'].relativePath' | sed 's/\"//g')
+    if [ $file_url_out ]; then
+        echo "[Banner Download] 正在下载 "$1"/lastSuccessfulBuild/artifact/"$file_url_out
+        ci_download $1 $2 $3
+    else
+        echo "[Banner Download] 重新请求 "$3
+        ci_getLatest $1 $2 $3
+    fi
+}
+
+ci_download ()
+{
+    wget -q -O "./_tmp-ci/"$3 $1"/lastSuccessfulBuild/artifact/"$file_url_out
+    if [ 0 -ne $? ]; then
+        echo "[Banner Download] 重新下载 "$3
+        ci_download $1 $2 $3
+    else
+        echo "[Banner Download] 下载成功 "$3
+    fi
+}
+
+curseforge_getLatest()
+{
+    json=$(wget -q -O - "https://api.cfwidget.com/"$1"?version="$2)
+    file_id=$(echo $json | jq '.download.id')
+    file_name=$(echo $json | jq '.download.name' | sed 's/\"//g')
+    if [ $file_id ]; then
+        file_id_url=$(echo $file_id | sed 's/..../&\//g')
+        if [ ${file_id_url: -1} != \/ ]
+        then
+            file_id_url=$file_id_url\/
+        fi
+        file_id_url=$(echo $file_id_url | sed 's/\/00/\//g')
+        file_id_url=$(echo $file_id_url | sed 's/\/0/\//g')
+        file_name=$(echo $file_name|sed 's/+/%2B/g')
+        echo "[Banner Download] 正在下载 https://media.forgecdn.net/files/"$file_id_url$file_name
+        curseforge_download "$file_id_url" "$file_name" "$3"
+    else
+        echo "[Banner Download] 重新请求 "$3
+        curseforge_getLatest $1 $2 $3
+    fi
+}
+
+curseforge_download()
+{
+    wget -q -O ./_tmp-ci/$3 "https://media.forgecdn.net/files/""$1""$2"
+    if [ $? -ne 0 ]; then
+        echo "[Banner Download] 重新下载 "$3" https://media.forgecdn.net/files/""$1""$2"
+        curseforge_download "$1" "$2" "$3"
+    else
+        echo "[Banner Download] 下载成功 "$3
+    fi
+}
+
+banner_install(){
+    rm -rf ./_tmp-ci
+    mkdir ./_tmp-ci/
+    game_version="1.19.4"
+    fabric_loader_version=`curl -# https://meta.fabricmc.net/v2/versions/loader/$game_version | jq -r .[0].loader.version`
+    fabric_installer_version="0.11.2"
+    curl -# -o "fabric-loader.jar" https://meta.fabricmc.net/v2/versions/loader/$game_version/$fabric_loader_version/$fabric_installer_version/server/jar
+    curseforge_getLatest "minecraft/mc-mods/fabric-api" "$game_version" "FabricAPI.jar"
+    ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner" 0 "BannerCore.jar"
+    mkdir "mods"
+    cp ./_tmp-ci/*.jar ./mods/
+    rm -rf ./_tmp-ci
+}
+
+banner_start(){
+    if [ ${1} -eq true ]; then
+        banner_restart=true
+    else
+        banner_restart=false
+    fi
+    echo "eula=true" > eula.txt
+    while true; do
+        java $banner_java_options -jar fabric-loader.jar ${banner_options:-"-nogui"}
+        if [ $banner_restart -eq false ]; then
+            break
+        fi
+    done
+}
+
+banner_launcher_update(){
+    wget -O"${1}" https://gist.github.com/8MiYile/388bca9fe4a59c9b2f889dd7760d3e8f/raw/97740e34de136753ecf80cec435368166ee03b2f/banner-launcher
+    exit
+}
+
+print_usage() {
+    echo -e "    Usage: ${0} \n" \
+            '   -i, --install       : Install Banner Server \n' \
+            '   -j, --java-options  : Set Java options (Ex: -j "-Xmx2G" ) \n' \
+            '   -o, --options       : Set Banner Option (Ex: -o "-nogui") (Default: "-nogui") \n' \
+            '   -s, --start         : Start Banner Server \n' \
+            '   -h, --help          : Print this help'
+}
+#start
+main(){
+    echo "[Banner Launcher] MohistMC Team"
+    while true; do
+        case "${1}" in
+            -h | --help | "" ) print_usage; exit 0 ;;
+            -i | --install ) banner_install; shift ;;
+            -j | --java-options ) banner_java_options="${2}"; shift 2 ;;
+            -o | --options ) banner_options="${2}"; shift 2 ;;
+            -s | --start ) banner_start ${2}; shift 2 ;;
+            -u | --update-launcer) banner_launcher_update "${0}"; shift ;;
+            -- ) shift; break ;;
+            * )  print_usage; exit 0 ;;
+        esac
+    done
+}
+main $*
