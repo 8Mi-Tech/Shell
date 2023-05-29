@@ -70,7 +70,7 @@ banner_install(){
 }
 
 banner_start(){
-    if [ ${1} -eq true ]; then
+    if [ ${1:false} = true ]; then
         banner_restart=true
     else
         banner_restart=false
