@@ -70,7 +70,7 @@ banner_install(){
 }
 
 banner_start(){
-    if [ ${1:false} = true ]; then
+    if [ ${1:-false} = true ]; then
         banner_restart=true
     else
         banner_restart=false
@@ -79,10 +79,11 @@ banner_start(){
     while true; do
         java $banner_java_options -jar fabric-loader.jar ${banner_options:-"-nogui"}
         if [ $banner_restart = false ]; then
-            break
+            exit
         fi
     done
 }
+
 
 banner_launcher_update(){
     wget -O"${1}" https://github.com/8Mi-Tech/Shell/raw/main/banner-launcher
