@@ -78,7 +78,7 @@ banner_start(){
     echo "eula=true" > eula.txt
     while true; do
         java $banner_java_options -jar fabric-loader.jar ${banner_options:-"-nogui"}
-        if [ $banner_restart -eq false ]; then
+        if [ $banner_restart = false ]; then
             break
         fi
     done
