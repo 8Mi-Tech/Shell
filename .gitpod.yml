@@ -1,0 +1,17 @@
+# List the start up tasks. Learn more: https://www.gitpod.io/docs/configure/workspaces/tasks
+tasks:
+  - name: Install Java 17
+    # `sed` required to do this non-interactively, wish sdkman wasnt dog-water but...
+    command: sed -i 's/sdkman_auto_answer=false/sdkman_auto_answer=true/g' /home/gitpod/.sdkman/etc/config && sdk install java
+
+  - name: Setup Banner
+    command: bash banner-launcher -i
+
+# List the ports to expose. Learn more: https://www.gitpod.io/docs/configure/workspaces/ports
+ports:
+  - name: minecraft
+    description: minecraft port
+    port: 25565
+    onOpen: notify
+
+# Learn more from ready-to-use templates: https://www.gitpod.io/docs/introduction/getting-started/quickstart

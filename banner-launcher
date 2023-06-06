@@ -64,7 +64,9 @@ banner_install(){
     curl -# -o "fabric-loader.jar" https://meta.fabricmc.net/v2/versions/loader/$game_version/$fabric_loader_version/$fabric_installer_version/server/jar
     curseforge_getLatest "minecraft/mc-mods/fabric-api" "$game_version" "FabricAPI.jar"
     ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner" 0 "BannerCore.jar"
-    mkdir "mods"
+    if [ ! -d "mods" ]; then
+        mkdir "mods"
+    fi
     cp ./_tmp-ci/*.jar ./mods/
     rm -rf ./_tmp-ci
 }

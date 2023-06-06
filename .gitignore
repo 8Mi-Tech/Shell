@@ -1,2 +1,11 @@
+## Minecraft server files
+eula.txt
+server.properties
+fabricloader.log
+/*.yml
+/*.json
 /*/
 *.jar
+
+## Workspace Files
+!.gitpod.yml
