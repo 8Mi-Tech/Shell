@@ -55,6 +55,17 @@ curseforge_download()
     fi
 }
 
+modrinth_getLatestAndDownload(){
+    wget -q -O ./_tmp-ci/$3 `curl "https://api.modrinth.com/v2/project/"$1"/version?game_versions=[%22""$2""%22]" | jq -r .[0].files[0].url`
+    if [ $? -ne 0 ]; then
+        echo "[Banner Download] 重新下载 "$3
+        modrinth_getLatestAndDownload "$1" "$2" "$3"
+    else
+        echo "[Banner Download] 下载成功 "$3
+    fi
+    
+}
+
 banner_install(){
     rm -rf ./_tmp-ci
     mkdir ./_tmp-ci/
@@ -62,7 +73,7 @@ banner_install(){
     fabric_loader_version=`curl -# https://meta.fabricmc.net/v2/versions/loader/$game_version | jq -r .[0].loader.version`
     fabric_installer_version="0.11.2"
     curl -# -o "fabric-loader.jar" https://meta.fabricmc.net/v2/versions/loader/$game_version/$fabric_loader_version/$fabric_installer_version/server/jar
-    curseforge_getLatest "minecraft/mc-mods/fabric-api" "$game_version" "FabricAPI.jar"
+    modrinth_getLatestAndDownload "fabric-api" "$game_version" "FabricAPI.jar"
     ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner" 0 "BannerCore.jar"
     mkdir "mods"
     cp ./_tmp-ci/*.jar ./mods/
