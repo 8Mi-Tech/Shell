@@ -74,7 +74,7 @@ banner_install(){
     fabric_installer_version=`curl -# https://meta.fabricmc.net/v2/versions/installer | jq -r .[0].version`
     curl -# -o "fabric-loader.jar" https://meta.fabricmc.net/v2/versions/loader/$game_version/$fabric_loader_version/$fabric_installer_version/server/jar
     modrinth_getLatestAndDownload "fabric-api" "$game_version" "FabricAPI.jar"
-    ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner" 0 "BannerCore.jar"
+    ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner-$game_version" 0 "BannerCore.jar"
     mkdir "mods"
     cp ./_tmp-ci/*.jar ./mods/
     rm -rf ./_tmp-ci
