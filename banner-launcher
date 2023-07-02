@@ -1,70 +1,10 @@
 #!/bin/bash
-ci_getLatest ()
-{
-    file_url_out=$(wget -q -O - $1/lastSuccessfulBuild/api/json | jq '.artifacts['$2'].relativePath' | sed 's/\"//g')
-    if [ $file_url_out ]; then
-        echo "[Banner Download] 正在下载 "$1"/lastSuccessfulBuild/artifact/"$file_url_out
-        ci_download $1 $2 $3
-    else
-        echo "[Banner Download] 重新请求 "$3
-        ci_getLatest $1 $2 $3
-    fi
-}
-
-ci_download ()
-{
-    wget -q -O "./_tmp-ci/"$3 $1"/lastSuccessfulBuild/artifact/"$file_url_out
-    if [ 0 -ne $? ]; then
-        echo "[Banner Download] 重新下载 "$3
-        ci_download $1 $2 $3
-    else
-        echo "[Banner Download] 下载成功 "$3
-    fi
-}
-
-curseforge_getLatest()
-{
-    json=$(wget -q -O - "https://api.cfwidget.com/"$1"?version="$2)
-    file_id=$(echo $json | jq '.download.id')
-    file_name=$(echo $json | jq '.download.name' | sed 's/\"//g')
-    if [ $file_id ]; then
-        file_id_url=$(echo $file_id | sed 's/..../&\//g')
-        if [ ${file_id_url: -1} != \/ ]
-        then
-            file_id_url=$file_id_url\/
-        fi
-        file_id_url=$(echo $file_id_url | sed 's/\/00/\//g')
-        file_id_url=$(echo $file_id_url | sed 's/\/0/\//g')
-        file_name=$(echo $file_name|sed 's/+/%2B/g')
-        echo "[Banner Download] 正在下载 https://media.forgecdn.net/files/"$file_id_url$file_name
-        curseforge_download "$file_id_url" "$file_name" "$3"
-    else
-        echo "[Banner Download] 重新请求 "$3
-        curseforge_getLatest $1 $2 $3
-    fi
-}
-
-curseforge_download()
-{
-    wget -q -O ./_tmp-ci/$3 "https://media.forgecdn.net/files/""$1""$2"
-    if [ $? -ne 0 ]; then
-        echo "[Banner Download] 重新下载 "$3" https://media.forgecdn.net/files/""$1""$2"
-        curseforge_download "$1" "$2" "$3"
-    else
-        echo "[Banner Download] 下载成功 "$3
-    fi
-}
-
-modrinth_getLatestAndDownload(){
-    wget -q -O ./_tmp-ci/$3 `curl "https://api.modrinth.com/v2/project/"$1"/version?game_versions=[%22""$2""%22]" | jq -r .[0].files[0].url`
-    if [ $? -ne 0 ]; then
-        echo "[Banner Download] 重新下载 "$3
-        modrinth_getLatestAndDownload "$1" "$2" "$3"
-    else
-        echo "[Banner Download] 下载成功 "$3
-    fi
-    
-}
+if [ -e 8Mi-MCUpdCore.sh ]; then
+    source 8Mi-MCUpdCore.sh || exit 1
+else
+    wget -O "8Mi-MCUpdCore.sh" https://github.com/8Mi-Tech/Shell/raw/main/8Mi-MCUpdCore.sh
+    source 8Mi-MCUpdCore.sh || exit 1
+fi
 
 banner_install(){
     rm -rf ./_tmp-ci
@@ -73,9 +13,11 @@ banner_install(){
     fabric_loader_version=`curl -# https://meta.fabricmc.net/v2/versions/loader/$game_version | jq -r .[0].loader.version`
     fabric_installer_version=`curl -# https://meta.fabricmc.net/v2/versions/installer | jq -r .[0].version`
     curl -# -o "fabric-loader.jar" https://meta.fabricmc.net/v2/versions/loader/$game_version/$fabric_loader_version/$fabric_installer_version/server/jar
-    modrinth_getLatestAndDownload "fabric-api" "$game_version" "FabricAPI.jar"
-    ci_getLatest "https://ci.codemc.io/job/MohistMC/job/Banner-$game_version" 0 "BannerCore.jar"
-    mkdir "mods"
+    modrinth_getLatestDownloadURL "fabric-api" "$game_version" | 8Mi_Download "FabricAPI.jar"
+    jenkins_getLatestDownloadURL "https://ci.codemc.io/job/MohistMC/job/Banner-$game_version" | 8Mi_Download "BannerCore.jar"
+    if [ ! -d "mods" ]; then
+        mkdir "mods"
+    fi
     cp ./_tmp-ci/*.jar ./mods/
     rm -rf ./_tmp-ci
 }
