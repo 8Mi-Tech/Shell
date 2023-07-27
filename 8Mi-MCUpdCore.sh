@@ -6,6 +6,9 @@
 # !/bin/bash
 # source 8Mi-MCUpdCore.sh
 
+# 初始化(关于Wget)
+wget --help | grep -q '\--show-progress' && WGET_PROGRESS_OPT="-q --show-progress" || WGET_PROGRESS_OPT=""
+
 # jenkins_getLatestDLURL
 # $1 = * URL (example "https://ci.viaversion.com/job/ViaVersion-DEV")
 # $2 = * ArtifactID(default:0) (example 0)
@@ -64,7 +67,7 @@ papermc_getLatestDLURL() {
 8Mi_Download(){
     dl_url=`cat /dev/stdin`
     echo "[8Mi-MCUpdCore] 正在通过服务器"` echo ${2:-$dl_url} | awk -F'/' '{print $3}' `" 下载"$1
-    wget --show-progress -qO ./_tmp-ci/$1 ${2:-$dl_url}
+    wget $WGET_PROGRESS_OPT -O ./_tmp-ci/$1 ${2:-$dl_url}
     if [ 0 -ne $? ]; then
     echo "[8Mi-MCUpdCore] "$1"下载失败"
     fi
