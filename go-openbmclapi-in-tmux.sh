@@ -17,29 +17,28 @@ case "`uname -m`" in
         exit
 esac
 
-FILE_NAME="openbmclapi-go"
+FILE_NAME="./openbmclapi-go"
 #REPROXY_URL="https://mirror.ghproxy.com/"
 REPROXY_URL=""
 URL="https://github.com/LiterMC/go-openbmclapi/releases/latest/download/go-openbmclapi-linux-$GOARCH"
 
 while true; do
-    echo "【8Mi & BMCLAPI】 检测更新中"
-    while true; do
-        REMOTE_FILE_SIZE=` wget --spider -S "$REPROXY_URL$URL" 2>&1 | grep "Content-Length"  | awk '{print $2}' | grep -v '^0$' `
-        if [ -n "$REMOTE_FILE_SIZE" ] && [ "$REMOTE_FILE_SIZE" -gt 0 ]; then
-            break
+    if [ -e "$FILE_NAME" ]; then
+        echo "【8Mi & BMCLAPI】 检测更新中"
+        TAG_URL=`curl -sI $URL | grep "location: " | sed 's/location: //'`
+        TAG=`$FILE_NAME version | grep 'Go-OpenBmclApi v' | sed -e "s/^Go-OpenBmclApi v.* (//" -e "s/)$//"`
+        if [ -n "$TAG" ] && echo "$TAG_URL" | grep -qF "$TAG"; then
+            echo "【8Mi & BMCLAPI】 无需更新."
+            NEED_DL=false
+        else
+            NEED_DL=true
         fi
-        sleep 1
-    done
-    
-    if [ -f "$FILE_NAME" ]; then
-        LOCAL_FILE_SIZE=$(stat -c %s "$FILE_NAME")
     else
-        LOCAL_FILE_SIZE=0
+        NEED_DL=true
     fi
-    
-    if [ "$REMOTE_FILE_SIZE" -ne "$LOCAL_FILE_SIZE" ]; then
-        echo "【8Mi & BMCLAPI】 有更新，正在更新中"
+
+    if [ "$NEED_DL" = true ]; then
+        echo "【8Mi & BMCLAPI】 开始下载"
         while true; do
             wget --show-progress -qO "$FILE_NAME" "$REPROXY_URL$URL"
             if [ $? -eq 0 ]; then
@@ -47,11 +46,7 @@ while true; do
             fi
             sleep 1
         done
-    else
-        echo "【8Mi & BMCLAPI】 文件大小匹配，无需更新."
     fi
 
-    chmod +x ./openbmclapi-go
-    ./openbmclapi-go
-    sleep 1
+    chmod +x $FILE_NAME; $FILE_NAME; sleep 1
 done
