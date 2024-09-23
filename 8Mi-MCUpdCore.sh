@@ -75,7 +75,6 @@ modrinth_getLatestUrl() {
     IFS='&' # 设置分隔符
     local query_list_str="${query_list[*]}" # 连接数组元素
     unset IFS # 还原 IFS
-    echo "https://api.modrinth.com/v2/project/$project/version$question$query_list_str"
     curl -sL "https://api.modrinth.com/v2/project/$project/version$question$query_list_str" | jq -r .[0].files[0].url >&1
 }
 # papermc_getLatestUrl
