@@ -4,7 +4,7 @@
 // @version      2025-08-30
 // @description  获取云盘登录信息
 // @author       8Mi-Tech
-// @match        https://yun.139.com/w/*
+// @match        https://yun.139.com/*
 // @match        https://pan.wo.cn/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=8mi.tech
 // @grant        none
@@ -43,21 +43,41 @@
     }
 
     function create139CloudContent() {
+      const copyAttr = 'onclick="copyAndTips(this)" style="cursor: pointer;" readonly title="点击复制"';
       return `
         <head>
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/layui/layui@main/dist/css/layui.css">
+          <script src="https://cdn.jsdelivr.net/gh/layui/layui@main/dist/layui.js"></script>
+          <script>
+            function copyAndTips(obj) {
+              obj.select();
+              navigator.clipboard.writeText(obj.value).then(() => {
+                // 使用 tips 提示，1 表示在上方，颜色为绿色
+                layui.layer.tips('已复制', obj, {
+                  tips: [1, '#5FB878'],
+                  time: 2000
+                });
+              });
+            }
+          </script>
         </head>
-        <body>
+        <body style="padding: 20px;">
           <div class="layui-form-item layui-form-pane">
-            <label class="layui-form-label" width="50px">Authorization：</label>
+            <label class="layui-form-label">授权</label>
             <div class="layui-input-block">
-              <input type="text" name="Authorization" lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="${getCookie("authorization")}">
+              <input type="text" class="layui-input" value="${getCookie("authorization") || ''}" ${copyAttr}>
             </div>
           </div>
           <div class="layui-form-item layui-form-pane">
             <label class="layui-form-label">验证令牌</label>
             <div class="layui-input-block">
-              <input type="text" name="auth_token" lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="${getCookie("auth_token")}">
+              <input type="text" class="layui-input" value="${getCookie("auth_token") || ''}" ${copyAttr}>
+            </div>
+          </div>
+          <div class="layui-form-item layui-form-pane">
+            <label class="layui-form-label">用户域ID</label>
+            <div class="layui-input-block">
+              <input type="text" class="layui-input" value="${getCookie("ud_id") || ''}" ${copyAttr}>
             </div>
           </div>
         </body>`;
@@ -141,22 +161,35 @@
       });
     }
 
-    function createTokenContent(token, refreshToken) {
+      function createTokenContent(token, refreshToken) {
+      const copyAttr = 'onclick="copyAndTips(this)" style="cursor: pointer;" readonly title="点击复制"';
       return `
         <head>
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/layui/layui@main/dist/css/layui.css">
+          <script src="https://cdn.jsdelivr.net/gh/layui/layui@main/dist/layui.js"></script>
+          <script>
+            function copyAndTips(obj) {
+              obj.select();
+              navigator.clipboard.writeText(obj.value).then(() => {
+                layui.layer.tips('已复制', obj, {
+                  tips: [1, '#5FB878'],
+                  time: 2000
+                });
+              });
+            }
+          </script>
         </head>
-        <body>
+        <body style="padding: 20px;">
           <div class="layui-form-item">
             <label class="layui-form-label">访问令牌:</label>
-            <div class="layui-input-block" width="100%">
-              <input type="text" name="access_token" lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="${token}">
+            <div class="layui-input-block">
+              <input type="text" class="layui-input" value="${token}" ${copyAttr}>
             </div>
           </div>
           <div class="layui-form-item">
             <label class="layui-form-label">刷新令牌:</label>
-            <div class="layui-input-block" width="100%">
-              <input type="text" name="refresh_token" lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="${refreshToken}">
+            <div class="layui-input-block">
+              <input type="text" class="layui-input" value="${refreshToken}" ${copyAttr}>
             </div>
           </div>
         </body>`;
